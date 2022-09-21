@@ -61,7 +61,7 @@ val = dict(
     device='cuda',
     # is_val_gt=True,
     image_dir='datasets/NewVersion/val_data',
-    gt_file= ['D:/DocumentAI/Sinhala-ParSeq/data/train/sin_printed_1'],
+    gt_file= [lmdb_dir],
     # gt_file=['datasets/NewVersion/val_data/val_data.txt'],
     # gt_file='../dataset/MJ/MJ_valid/',
     batch_size=8,  # 4gpu 1800
@@ -82,14 +82,7 @@ test = dict(
     avg_all=False,  
     is_test_gt=False,
     image_dir= None,     #if is_test_gt == False,needn't use image_dir
-    test_list=[
-               './dataset/eval/IC13_857',
-               './dataset/eval/SVT',
-                './dataset/eval/IIIT5k_3000',
-               './dataset/eval/IC15_1811',
-                './dataset/eval/SVTP',
-               './dataset/eval/CUTE80'
-    ],
+    test_list=[lmdb_dir],
     batch_size=8,
     num_worker=0,
     model_dir='models/reconstruct_CDistNetv3_3_10',  # load test model
