@@ -1,5 +1,8 @@
+import os
+
+
 dst_vocab = 'cdistnet/utils/dict_36.txt'   
-dst_vocab_size = 40
+dst_vocab_size = 66
 rgb2gray =False
 keep_aspect_ratio = False
 width = 128 #100
@@ -27,6 +30,8 @@ optim = 'origin'
 tps_block = 'TPS'      # TPS None
 feature_block = 'Resnet45'    # Resnet45 Resnet31 MTB
 
+lmdb_dir = os.environ.get('LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_printed_1')
+
 train = dict(
     grads_clip=5,
     optimizer='adam_decay',  # not used
@@ -34,16 +39,13 @@ train = dict(
     label_smoothing=True,  # fixed in code
     shared_embedding=False,  # not used
     device='cuda',
-    gt_file=['../dataset/MJ/MJ_train/',
-            '../dataset/MJ/MJ_test/',
-            '../dataset/MJ/MJ_valid/',
-            '../dataset/ST'],
-    num_worker=16,
+    gt_file=[lmdb_dir],
+    num_worker=0,
     # model_dir ='model/test',
     model_dir='models/reconstruct_CDistNet_3_10', 
     num_epochs=10,
     # gpu_device_ids=[1,2,3,4,5,6,7],
-    batch_size=1400,  # 4gpu 1800
+    batch_size=8,  # 4gpu 1800
     model=None,
     # model ='models/new_baseline_sem_pos_pos_vis_3_32*128_tps_resnet45_epoch_6/model_epoch_5.pth',
     # current_epoch=6,  # epoch start
@@ -59,17 +61,11 @@ val = dict(
     device='cuda',
     # is_val_gt=True,
     image_dir='datasets/NewVersion/val_data',
-    gt_file= [
-               './dataset/eval/IC13_857',
-               './dataset/eval/SVT',
-                './dataset/eval/IIIT5k_3000',
-               './dataset/eval/IC15_1811',
-                './dataset/eval/SVTP',
-               './dataset/eval/CUTE80'],
+    gt_file= ['D:/DocumentAI/Sinhala-ParSeq/data/train/sin_printed_1'],
     # gt_file=['datasets/NewVersion/val_data/val_data.txt'],
     # gt_file='../dataset/MJ/MJ_valid/',
-    batch_size=800,  # 4gpu 1800
-    num_worker=16,
+    batch_size=8,  # 4gpu 1800
+    num_worker=0,
 )
 
 
@@ -94,8 +90,8 @@ test = dict(
                 './dataset/eval/SVTP',
                './dataset/eval/CUTE80'
     ],
-    batch_size=128,
-    num_worker=8,
+    batch_size=8,
+    num_worker=0,
     model_dir='models/reconstruct_CDistNetv3_3_10',  # load test model
     script_path='utils/Evaluation_TextRecog/script.py',
     python_path='/data1/zs/anaconda3/envs/py2/bin/python' #abandon

@@ -10,7 +10,7 @@ class TensorboardLogger(object):
 
     @staticmethod
     def _get_tensorboard_writer(log_dir):
-        timestamp = datetime.fromtimestamp(time.time()).strftime('%Y%m%d-%H:%M')
+        timestamp = datetime.fromtimestamp(time.time()).strftime('%Y%m%d-%H_%M')
         tb_logger = SummaryWriter('{}/{}'.format(log_dir, timestamp))
         return tb_logger
 
