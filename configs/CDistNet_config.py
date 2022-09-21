@@ -30,7 +30,8 @@ optim = 'origin'
 tps_block = 'TPS'      # TPS None
 feature_block = 'Resnet45'    # Resnet45 Resnet31 MTB
 
-lmdb_dir = os.environ.get('LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_printed_1')
+lmdb_train_dir = os.environ.get('TRAIN_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_hw_0')
+lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_hw_0')
 
 train = dict(
     grads_clip=5,
@@ -39,7 +40,7 @@ train = dict(
     label_smoothing=True,  # fixed in code
     shared_embedding=False,  # not used
     device='cuda',
-    gt_file=[lmdb_dir],
+    gt_file=[lmdb_train_dir],
     num_worker=0,
     # model_dir ='model/test',
     model_dir='models/reconstruct_CDistNet_3_10', 
@@ -61,7 +62,7 @@ val = dict(
     device='cuda',
     # is_val_gt=True,
     image_dir='datasets/NewVersion/val_data',
-    gt_file= [lmdb_dir],
+    gt_file= [lmdb_test_dir],
     # gt_file=['datasets/NewVersion/val_data/val_data.txt'],
     # gt_file='../dataset/MJ/MJ_valid/',
     batch_size=8,  # 4gpu 1800
@@ -82,7 +83,7 @@ test = dict(
     avg_all=False,  
     is_test_gt=False,
     image_dir= None,     #if is_test_gt == False,needn't use image_dir
-    test_list=[lmdb_dir],
+    test_list=[lmdb_test_dir],
     batch_size=8,
     num_worker=0,
     model_dir='models/reconstruct_CDistNetv3_3_10',  # load test model
