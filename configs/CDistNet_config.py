@@ -34,6 +34,7 @@ lmdb_train_dir = os.environ.get('TRAIN_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/
 lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_hw_0')
 model_path = os.environ.get('MODEL_PATH')
 train_epochs = os.environ.get('NUM_TRAIN_EPOCHS', 40)
+current_epoch = os.environ.get('CURRENT_EPOCH', 0)
 
 train = dict(
     grads_clip=5,
@@ -51,7 +52,7 @@ train = dict(
     batch_size=8,  # 4gpu 1800
     model=model_path,
     # model ='models/new_baseline_sem_pos_pos_vis_3_32*128_tps_resnet45_epoch_6/model_epoch_5.pth',
-    # current_epoch=6,  # epoch start
+    current_epoch=current_epoch,  # epoch start
     save_iter=10000,
     display_iter=100,
     tfboard_iter=100,
