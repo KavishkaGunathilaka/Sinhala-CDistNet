@@ -32,6 +32,8 @@ feature_block = 'Resnet45'    # Resnet45 Resnet31 MTB
 
 lmdb_train_dir = os.environ.get('TRAIN_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_hw_0')
 lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_hw_0')
+model_path = os.environ.get('MODEL_PATH')
+train_epochs = os.environ.get('NUM_TRAIN_EPOCHS', 40)
 
 train = dict(
     grads_clip=5,
@@ -44,10 +46,10 @@ train = dict(
     num_worker=0,
     # model_dir ='model/test',
     model_dir='models/reconstruct_CDistNet_3_10', 
-    num_epochs=40,
+    num_epochs=train_epochs,
     # gpu_device_ids=[1,2,3,4,5,6,7],
     batch_size=8,  # 4gpu 1800
-    model=None,
+    model=model_path,
     # model ='models/new_baseline_sem_pos_pos_vis_3_32*128_tps_resnet45_epoch_6/model_epoch_5.pth',
     # current_epoch=6,  # epoch start
     save_iter=10000,
