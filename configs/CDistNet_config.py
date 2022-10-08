@@ -33,8 +33,8 @@ feature_block = 'Resnet45'    # Resnet45 Resnet31 MTB
 lmdb_train_dir = os.environ.get('TRAIN_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_hw_0')
 lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', 'D:/DocumentAI/Sinhala-ParSeq/data/train/sin_hw_0')
 model_path = os.environ.get('MODEL_PATH')
-train_epochs = os.environ.get('NUM_TRAIN_EPOCHS', 40)
-current_epoch = os.environ.get('CURRENT_EPOCH', 0)
+train_epochs = int(os.environ.get('NUM_TRAIN_EPOCHS', 40))
+current_epoch = int(os.environ.get('CURRENT_EPOCH', 0))
 
 train = dict(
     grads_clip=5,
