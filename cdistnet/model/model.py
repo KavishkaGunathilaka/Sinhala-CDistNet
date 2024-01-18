@@ -53,7 +53,8 @@ class VIS_Pre(nn.Module):
     def forward(self,image):
         x = image
 
-        src = torch.sum(torch.abs(image).view(image.shape[0], -1, image.shape[-1]), dim=1)
+        # src = torch.sum(torch.abs(image).view(image.shape[0], -1, image.shape[-1]), dim=1)
+        src = torch.sum(torch.abs(image).reshape(image.shape[0], -1, image.shape[-1]), dim=1)
         src_padding_mask = generate_padding_mask(src)
 
         x = self.transform(x)
