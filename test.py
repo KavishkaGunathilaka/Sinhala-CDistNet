@@ -8,12 +8,13 @@ from tqdm import tqdm
 from mmcv import Config
 import numpy as np
 import os
+from torchvision import transforms
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 # from cdistnet.hdf5loader import make_data_loader
 from cdistnet.model.translator import Translator
 from cdistnet.model.model import build_CDistNet
-# from cdistnet.data.data import make_data_loader
+from cdistnet.data.data import make_data_loader
 
 
 # test
@@ -80,7 +81,8 @@ def origin_process_img(cfg, image_path):
         image = np.expand_dims(image, -1)
     print(image.shape)
     image = np.expand_dims(image, -1)
-    image = image.transpose((2, 3, 0, 1))
+    #image = image.transpose((2, 3, 0, 1))
+    image = image.transpose((3, 2, 1, 0))
     image = image.astype(np.float32) / 128. - 1.
     image = torch.from_numpy(image)
     # text = self.data[idx][1]
@@ -91,12 +93,12 @@ def origin_process_img(cfg, image_path):
     return image
 
 
-def test(cfg):
+def test(cfg, args):
     model = build_CDistNet(cfg)
     # model.load_state_dict(torch.load(
     #     '/media/zs/zs/zs/code/NRTR/models/baseline_hdf5_100_32_two_local_MultiHeadAttention/model_epoch_avg.pth'))
     model_path = args.model_path
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location='cpu'))
     device = torch.device(cfg.test.device)
     model.to(device)
     model.eval()
@@ -129,7 +131,7 @@ def test_one(cfg, args):
     # de = get_parameter_number(model.transformer.decoder)
     # print('encoder:{}\ndecoder:{}\n'.format(en,de))
     model_path = args.model_path #'models/new_baseline_dssnetv3_3_32*128_tps_resnet45_epoch_6/epoch9_best_acc.pth'
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location='cpu'))
     device = torch.device(cfg.test.device)
     model.to(device)
     model.eval()
@@ -137,10 +139,9 @@ def test_one(cfg, args):
     word2idx, idx2word = load_vocab(cfg.dst_vocab, cfg.dst_vocab_size)
 
     # if args['use_origin'] is True:
-    img = origin_process_img(cfg, 'test/1.jpg')
+    img = origin_process_img(cfg, args.i_path)
     # else:
-    #     img = preprocess_image(args['img_path'])
-
+    # img = preprocess_image(args.i_path)
     cnt = 0
     res = []
     all_hyp, all_scores = translator.translate_batch(img)
@@ -169,7 +170,7 @@ def main():
     if args.test_one is True:
         test_one(cfg, args)
     else:
-        test(cfg)
+        test(cfg, args)
 
 
 if __name__ == '__main__':
