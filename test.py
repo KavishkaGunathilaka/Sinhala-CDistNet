@@ -93,8 +93,10 @@ def origin_process_img(cfg, image_path):
 
 def test(cfg):
     model = build_CDistNet(cfg)
-    model.load_state_dict(torch.load(
-        '/media/zs/zs/zs/code/NRTR/models/baseline_hdf5_100_32_two_local_MultiHeadAttention/model_epoch_avg.pth'))
+    # model.load_state_dict(torch.load(
+    #     '/media/zs/zs/zs/code/NRTR/models/baseline_hdf5_100_32_two_local_MultiHeadAttention/model_epoch_avg.pth'))
+    model_path = args.model_path
+    model.load_state_dict(torch.load(model_path))
     device = torch.device(cfg.test.device)
     model.to(device)
     model.eval()
@@ -126,7 +128,7 @@ def test_one(cfg, args):
     # en = get_parameter_number(model.transformer.encoder)
     # de = get_parameter_number(model.transformer.decoder)
     # print('encoder:{}\ndecoder:{}\n'.format(en,de))
-    model_path = 'models/new_baseline_dssnetv3_3_32*128_tps_resnet45_epoch_6/epoch9_best_acc.pth'
+    model_path = args.model_path #'models/new_baseline_dssnetv3_3_32*128_tps_resnet45_epoch_6/epoch9_best_acc.pth'
     model.load_state_dict(torch.load(model_path))
     device = torch.device(cfg.test.device)
     model.to(device)
