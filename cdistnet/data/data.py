@@ -293,7 +293,9 @@ class LMDBDataset(Dataset):
                     new_text = re.sub(pattern, '', new_text, count=1)
                     break
             else:
-                raise Exception("Unkonown character found")
+                new_text = new_text[1:]
+                chars.append(1)
+                
         text = chars           
         # if self.is_lower:
         #     text = [self.word2idx.get(ch.lower(), 1) for ch in text]
