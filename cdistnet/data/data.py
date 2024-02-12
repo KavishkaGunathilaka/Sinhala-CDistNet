@@ -242,7 +242,7 @@ class LMDBDataset(Dataset):
         with self.env.begin(write=False) as txn:
             image_key, label_key = f'image-{idx+1:09d}', f'label-{idx+1:09d}'
             label = str(txn.get(label_key.encode()), 'utf-8')  # label
-            label = re.sub('[^0-9a-zA-Z]+', '', label)
+            # label = re.sub('[^0-9a-zA-Z]+', '', label)
             label = label[:30]
 
             imgbuf = txn.get(image_key.encode())  # image
