@@ -232,7 +232,7 @@ def do_train(model,
             logger.info('  - (Validation)   loss: {loss: 8.5f}, accuracy: {accu:3.3f} %, time: {time:3.3f} min'
                         .format(loss=val_loss, accu=100 * val_accu, time=(time.time() - start) / 60))
 
-            if cfg.train_method != 'dist' or device == 0:
-                logger.info("Saving model ...")
-                torch.save(model.module.state_dict(), '{}/model_epoch_{}.pth'.format(model_dir, epoch))
-                logger.info("Saved!")
+            # if cfg.train_method != 'dist' or device == 0:
+            #     logger.info("Saving model ...")
+            #     torch.save(model.module.state_dict(), '{}/model_epoch_{}.pth'.format(model_dir, epoch))
+            #     logger.info("Saved!")

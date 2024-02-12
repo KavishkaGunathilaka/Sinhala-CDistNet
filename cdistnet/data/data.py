@@ -242,7 +242,10 @@ class LMDBDataset(Dataset):
         with self.env.begin(write=False) as txn:
             image_key, label_key = f'image-{idx+1:09d}', f'label-{idx+1:09d}'
             label = str(txn.get(label_key.encode()), 'utf-8')  # label
+
+            ### Changed to Sinhala ####
             # label = re.sub('[^0-9a-zA-Z]+', '', label)
+
             label = label[:30]
 
             imgbuf = txn.get(image_key.encode())  # image
@@ -277,10 +280,26 @@ class LMDBDataset(Dataset):
         image = image.astype(np.float32) / 128. - 1.
 
         text = label
-        if self.is_lower:
-            text = [self.word2idx.get(ch.lower(), 1) for ch in text]
-        else:
-            text = [self.word2idx.get(ch, 1) for ch in text]
+
+        ### Changed to Sinhala ####
+        chars = []
+        new_text = text
+        while len(new_text) > 0:
+            for key in self.word2idx.keys():
+                pattern = re.escape(key)
+                match = re.match(pattern, new_text)
+                if match:
+                    chars.append(self.word2idx.get(key))
+                    new_text = re.sub(pattern, '', new_text, count=1)
+                    break
+            else:
+                raise Exception("Unkonown character found")
+        text = chars           
+        # if self.is_lower:
+        #     text = [self.word2idx.get(ch.lower(), 1) for ch in text]
+        # else:
+        #     text = [self.word2idx.get(ch, 1) for ch in text]
+
         text.insert(0, 2)
         text.append(3)
         target = np.array(text)

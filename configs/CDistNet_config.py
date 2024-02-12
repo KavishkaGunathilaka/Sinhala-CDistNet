@@ -49,7 +49,7 @@ train = dict(
     model_dir='models/reconstruct_CDistNet_3_10', 
     num_epochs=train_epochs,
     # gpu_device_ids=[1,2,3,4,5,6,7],
-    batch_size=8,  # 4gpu 1800
+    batch_size=256,  # 4gpu 1800
     model=model_path,
     # model ='models/new_baseline_sem_pos_pos_vis_3_32*128_tps_resnet45_epoch_6/model_epoch_5.pth',
     current_epoch=current_epoch,  # epoch start
@@ -68,7 +68,7 @@ val = dict(
     gt_file= [lmdb_test_dir],
     # gt_file=['datasets/NewVersion/val_data/val_data.txt'],
     # gt_file='../dataset/MJ/MJ_valid/',
-    batch_size=8,  # 4gpu 1800
+    batch_size=64,  # 4gpu 1800
     num_worker=0,
 )
 
@@ -87,7 +87,7 @@ test = dict(
     is_test_gt=False,
     image_dir= None,     #if is_test_gt == False,needn't use image_dir
     test_list=[lmdb_test_dir],
-    batch_size=8,
+    batch_size=64,
     num_worker=0,
     model_dir='/content/Sinhala-CDistNet/models/reconstruct_CDistNet_3_10',  # load test model
     script_path='utils/Evaluation_TextRecog/script.py',
