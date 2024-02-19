@@ -267,7 +267,7 @@ class LMDBDataset(Dataset):
             ### Changed to Sinhala ####
             # label = re.sub('[^0-9a-zA-Z]+', '', label)
 
-            label = label[:30]
+            # label = label[:30]
 
             imgbuf = txn.get(image_key.encode())  # image
             buf = six.BytesIO()
