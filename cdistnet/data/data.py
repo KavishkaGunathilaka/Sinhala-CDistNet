@@ -18,6 +18,7 @@ from tqdm import tqdm
 import lmdb
 
 from cdistnet.data.transform import CVGeometry, CVColorJitter, CVDeterioration
+from cdistnet.data.chars import VOWEL_DIACRITICS, NUBERS_AND_PUNKTS, ALL_LETTERS
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -34,6 +35,26 @@ def load_vocab(vocab=None, vocab_size=None):
     idx2word = {idx: word for idx, word in enumerate(vocab)}
     return word2idx, idx2word
 
+
+def process_text(t):
+    tokenized_chars = []
+    for i, char in enumerate(t):
+        if char in VOWEL_DIACRITICS:
+            continue
+        if char in NUBERS_AND_PUNKTS:
+            tokenized_chars.append(char)
+        elif char == " ":
+            tokenized_chars.append(" ")
+        elif char in ALL_LETTERS:
+            if i < len(t) - 1 and t[i + 1] in ALL_LETTERS:
+                tokenized_chars.append(char)
+            elif i < len(t) - 1 and t[i + 1] in VOWEL_DIACRITICS:
+                tokenized_chars.append(char + t[i + 1])
+            else:
+                tokenized_chars.append(char)
+        else:
+            tokenized_chars.append(char)
+    return tokenized_chars
 
 class Resize(object):
     def __init__(self, size):
@@ -282,21 +303,23 @@ class LMDBDataset(Dataset):
         text = label
 
         ### Changed to Sinhala ####
-        chars = []
-        new_text = text
-        while len(new_text) > 0:
-            for key in self.word2idx.keys():
-                pattern = re.escape(key)
-                match = re.match(pattern, new_text)
-                if match:
-                    chars.append(self.word2idx.get(key))
-                    new_text = re.sub(pattern, '', new_text, count=1)
-                    break
-            else:
-                new_text = new_text[1:]
-                chars.append(1)
-                
-        text = chars           
+        # chars = []
+        # new_text = text
+        # while len(new_text) > 0:
+        #     for key in self.word2idx.keys():
+        #         pattern = re.escape(key)
+        #         match = re.match(pattern, new_text)
+        #         if match:
+        #             chars.append(self.word2idx.get(key))
+        #             new_text = re.sub(pattern, '', new_text, count=1)
+        #             break
+        #     else:
+        #         new_text = new_text[1:]
+        #         chars.append(1)
+        # text = chars           
+
+        text = [self.word2idx.get(ch, 1) for ch in process_text(text)]
+
         # if self.is_lower:
         #     text = [self.word2idx.get(ch.lower(), 1) for ch in text]
         # else:
