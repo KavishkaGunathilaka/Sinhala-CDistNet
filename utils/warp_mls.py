@@ -143,10 +143,10 @@ class WarpMLS:
                 ny = i + di + delta_y * self.trans_ratio
                 nx = np.clip(nx, 0, src_w - 1)
                 ny = np.clip(ny, 0, src_h - 1)
-                nxi = np.array(np.floor(nx), dtype=np.int32)
-                nyi = np.array(np.floor(ny), dtype=np.int32)
-                nxi1 = np.array(np.ceil(nx), dtype=np.int32)
-                nyi1 = np.array(np.ceil(ny), dtype=np.int32)
+                nxi = np.array(np.floor(nx), dtype=int)
+                nyi = np.array(np.floor(ny), dtype=int)
+                nxi1 = np.array(np.ceil(nx), dtype=int)
+                nyi1 = np.array(np.ceil(ny), dtype=int)
 
                 if len(self.src.shape) == 3:
                     x = np.tile(np.expand_dims(ny - nyi, axis=-1), (1, 1, 3))

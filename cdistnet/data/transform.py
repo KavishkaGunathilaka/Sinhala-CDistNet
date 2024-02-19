@@ -197,8 +197,8 @@ class CVRandomPerspective(object):
         self.distortion = distortion
 
     def get_params(self, width, height, distortion):
-        offset_h = sample_asym(distortion * height / 2, size=4).astype(dtype=np.int)
-        offset_w = sample_asym(distortion * width / 2, size=4).astype(dtype=np.int)
+        offset_h = sample_asym(distortion * height / 2, size=4).astype(dtype=int)
+        offset_w = sample_asym(distortion * width / 2, size=4).astype(dtype=int)
         topleft = (offset_w[0], offset_h[0])
         topright = (width - 1 - offset_w[1], offset_h[1])
         botright = (width - 1 - offset_w[2], height - 1 - offset_h[2])
