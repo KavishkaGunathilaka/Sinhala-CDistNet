@@ -1,3 +1,7 @@
 venv/
 __pycache__/
 cdisnet-env/
+train-data/
+test-data/
+cdistnet/__pycache__/
+cdistnet/data/__pycache__/

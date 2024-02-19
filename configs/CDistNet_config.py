@@ -1,12 +1,12 @@
 import os
 
 
-dst_vocab = 'cdistnet/utils/dict_95.txt'   
-dst_vocab_size = 95
+dst_vocab = 'cdistnet/utils/dict_394.txt'   
+dst_vocab_size = 394
 rgb2gray =False
-keep_aspect_ratio = False
-width = 128 #100
-height = 32 #32
+keep_aspect_ratio = True
+width = 512 #100
+height = 48 #32
 max_width = 180
 is_lower = False 
 cnn_num = 2
@@ -30,8 +30,8 @@ optim = 'origin'
 tps_block = 'TPS'      # TPS None
 feature_block = 'Resnet45'    # Resnet45 Resnet31 MTB
 
-lmdb_train_dir = os.environ.get('TRAIN_LMDB_DIR', '/content/train-data')
-lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', '/content/train-data')
+lmdb_train_dir = os.environ.get('TRAIN_LMDB_DIR', 'train-data')
+lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', 'train-data')
 model_path = os.environ.get('MODEL_PATH')
 train_epochs = int(os.environ.get('NUM_TRAIN_EPOCHS', 100))
 current_epoch = int(os.environ.get('CURRENT_EPOCH', 0))
@@ -49,7 +49,7 @@ train = dict(
     model_dir='models/reconstruct_CDistNet_3_10', 
     num_epochs=train_epochs,
     # gpu_device_ids=[1,2,3,4,5,6,7],
-    batch_size=256,  # 4gpu 1800
+    batch_size=4,  # 4gpu 1800
     model=model_path,
     # model ='models/new_baseline_sem_pos_pos_vis_3_32*128_tps_resnet45_epoch_6/model_epoch_5.pth',
     current_epoch=current_epoch,  # epoch start
