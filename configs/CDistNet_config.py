@@ -4,7 +4,7 @@ import os
 dst_vocab = 'cdistnet/utils/dict_394.txt'   
 dst_vocab_size = 394
 rgb2gray =False
-keep_aspect_ratio = False
+keep_aspect_ratio = False # Aspect ratio=True does not work
 width = 512 #100
 height = 48 #32
 max_width = 180
