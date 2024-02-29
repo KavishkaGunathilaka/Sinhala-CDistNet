@@ -215,7 +215,7 @@ class CVRandomPerspective(object):
 
         # TODO: more robust way to crop image
         rect = cv2.minAreaRect(endpoints)
-        bbox = cv2.boxPoints(rect).astype(dtype=np.int)
+        bbox = cv2.boxPoints(rect).astype(dtype=int)
         max_x, max_y = bbox[:, 0].max(), bbox[:, 1].max()
         min_x, min_y = bbox[:, 0].min(), bbox[:, 1].min()
         min_x, min_y = max(min_x, 0), max(min_y, 0)
