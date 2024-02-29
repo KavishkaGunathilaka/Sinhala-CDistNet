@@ -5,3 +5,6 @@ train-data/
 test-data/
 cdistnet/__pycache__/
 cdistnet/data/__pycache__/
+cdistnet/model/__pycache__/
+cdistnet/model/stage/__pycache__/
+models/
