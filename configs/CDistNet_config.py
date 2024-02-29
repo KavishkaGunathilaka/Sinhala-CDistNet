@@ -4,7 +4,7 @@ import os
 dst_vocab = 'cdistnet/utils/dict_394.txt'   
 dst_vocab_size = 394
 rgb2gray =False
-keep_aspect_ratio = True
+keep_aspect_ratio = False
 width = 512 #100
 height = 48 #32
 max_width = 180
@@ -42,7 +42,7 @@ train = dict(
     learning_rate_warmup_steps=10000,
     label_smoothing=True,  # fixed in code
     shared_embedding=False,  # not used
-    device='cuda',
+    device='cpu',
     gt_file=[lmdb_train_dir],
     num_worker=0,
     # model_dir ='model/test',

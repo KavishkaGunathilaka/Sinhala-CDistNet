@@ -359,7 +359,7 @@ def collate_fn_test(insts):
 
 
 def src_pad(insts):
-    max_w = max(inst.shape[-1] for inst in insts)+1
+    max_w = max(inst.shape[-1] for inst in insts)
     insts_ = []
     for inst in insts:
         d = max_w - inst.shape[-1]
@@ -371,7 +371,7 @@ def src_pad(insts):
 
 def tgt_pad(insts):
     # pad blank for size_len consist
-    max_len = max(len(inst) for inst in insts)+1
+    max_len = max(len(inst) for inst in insts)
     insts_ = []
     for inst in insts:
         d = max_len - inst.shape[0]
