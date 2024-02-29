@@ -105,7 +105,7 @@ def train(model,
         #     logger.info("Saved!")
 
         if epoch >= 6 and iteration % eval_iter == 0:
-            eval_loss, eval_acc = eval(
+            eval_loss, eval_acc, _ = eval(
                 model=model,
                 data_loader=val_data_loader,
                 device=device,
@@ -140,6 +140,7 @@ def eval(model, data_loader, device, label_smoothing,cfg):
     n_word_correct = 0
     avg_acc = .0
     datasets_len = len(data_loader)
+    predictions = []
     with torch.no_grad():
         for dataset in data_loader:
             data_len=len(dataset)
@@ -151,6 +152,7 @@ def eval(model, data_loader, device, label_smoothing,cfg):
                     images = batch[0].to(device)
                     tgt = batch[1].to(device)
                 pred = model(images, tgt)
+                predictions.append((pred, tgt))
                 tgt = tgt[:, 1:]
                 loss, n_correct = cal_performance(pred, tgt, smoothing=label_smoothing,local_rank=device)
 
@@ -165,7 +167,7 @@ def eval(model, data_loader, device, label_smoothing,cfg):
             # print("accuracy:{}".format(accuracy))
             avg_acc +=accuracy
 
-    return loss_per_word, avg_acc/datasets_len
+    return loss_per_word, avg_acc/datasets_len, predictions
 
 
 def do_train(model,
@@ -222,7 +224,7 @@ def do_train(model,
         start = time.time()
         if epoch >= 6:
             logger.info("Start eval ...")
-            val_loss, val_accu = eval(
+            val_loss, val_accu, _ = eval(
                 model=model,
                 data_loader=val_dataloader,
                 device=device,

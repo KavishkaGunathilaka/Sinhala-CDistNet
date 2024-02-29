@@ -232,21 +232,19 @@ def main():
             writer = csv.writer(f)
             writer.writerow(headers)
     if cfg.test.best_acc_test:
-        # path2 = glob.glob(cfg.test.model_dir + '/epoch9_*.pth')
-        # path = glob.glob(cfg.test.model_dir + '/*_best_acc.pth')
         models = glob.glob(cfg.test.model_dir + '/epoch*_best_acc.pth')
         latest = sorted(models, key=getEpochNo)[-1]
         print("model: {}".format(latest))
         eval(cfg, args, latest)
+        return
 
     # eval all
-    # if cfg.test.eval_all:
-    #     paths = glob.glob(cfg.test.model_dir + "/*.pth")
-    #     for model_path in paths:
-    #         print("model: {}".format(model_path))
-    #         # eval(cfg, args,os.path.join(cfg.test.model_dir, model_path))
-    #         eval(cfg, args, model_path)
-    #         return
+    if cfg.test.eval_all:
+        paths = glob.glob(cfg.test.model_dir + "/*.pth")
+        for model_path in paths:
+            print("model: {}".format(model_path))
+            eval(cfg, args, model_path)
+            return
     # else:
     #     model_path_patten = cfg.test.model_dir + '/model_epoch_{}.pth'
     #     s, e = cfg.test.s_epoch, cfg.test.e_epoch
@@ -298,6 +296,8 @@ def eval(cfg, args,model_path):
         dist.init_process_group(backend='nccl')
         torch.cuda.set_device(args.local_rank)
 
+    word2idx, idx2word = load_vocab(cfg.dst_vocab, cfg.dst_vocab_size)
+
     model = build_CDistNet(cfg)
     model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
     lexdir = cfg.test.image_dir
@@ -308,10 +308,19 @@ def eval(cfg, args,model_path):
         else:
             test_dataloader = make_data_loader(cfg, is_train=False, val_gt_file=data_name)
             
-        loss_per_word, acc = new_eval(model, [test_dataloader], device, cfg.train.label_smoothing,cfg)
+        loss_per_word, acc, predictions = new_eval(model, [test_dataloader], device, cfg.train.label_smoothing,cfg)
 
         print("loss_per_word:", loss_per_word, "acc:", acc)
-            
+
+        for (pred, tgt) in predictions:
+            pred = pred.max(1)[1]
+            tgt = tgt.contiguous().view(-1)
+            pred_txt = [idx2word[i] for i in pred.cpu().numpy()]
+            tgt_txt = [idx2word[i] for i in tgt.cpu().numpy()]
+            print(''.join(pred_txt).replace("<PAD>", ''))
+            print(''.join(tgt_txt).replace("<PAD>", ''))
+            print('************************************')
+
     #     gt_list, name_list, pred_list = [], [], []
     #     num = 0
 

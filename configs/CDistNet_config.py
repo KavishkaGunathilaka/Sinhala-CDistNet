@@ -5,8 +5,8 @@ dst_vocab = 'cdistnet/utils/dict_394.txt'
 dst_vocab_size = 394
 rgb2gray =False
 keep_aspect_ratio = False # Aspect ratio=True does not work
-width = 512 #100
-height = 48 #32
+width = 256 #256
+height = 32 #32
 max_width = 180
 is_lower = False 
 cnn_num = 2
@@ -21,7 +21,7 @@ num_decoder_blocks = 3
 num_heads = 8
 beam_size = 10
 n_best = 1
-data_aug = True
+data_aug = False
 num_fiducial = 20           #number of fiducial points of TPS-STN
 train_method = 'origin'     #dist:  use distributed train method origin
 optim = 'origin'
@@ -31,7 +31,7 @@ tps_block = 'TPS'      # TPS None
 feature_block = 'Resnet45'    # Resnet45 Resnet31 MTB
 
 lmdb_train_dir = os.environ.get('TRAIN_LMDB_DIR', 'train-data')
-lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', 'train-data')
+lmdb_test_dir = os.environ.get('TEST_LMDB_DIR', 'test-data')
 model_path = os.environ.get('MODEL_PATH')
 train_epochs = int(os.environ.get('NUM_TRAIN_EPOCHS', 100))
 current_epoch = int(os.environ.get('CURRENT_EPOCH', 0))
@@ -68,7 +68,7 @@ val = dict(
     gt_file= [lmdb_test_dir],
     # gt_file=['datasets/NewVersion/val_data/val_data.txt'],
     # gt_file='../dataset/MJ/MJ_valid/',
-    batch_size=64,  # 4gpu 1800
+    batch_size=4,  # 4gpu 1800
     num_worker=0,
 )
 
@@ -87,7 +87,7 @@ test = dict(
     is_test_gt=False,
     image_dir= None,     #if is_test_gt == False,needn't use image_dir
     test_list=[lmdb_test_dir],
-    batch_size=64,
+    batch_size=4,
     num_worker=0,
     model_dir='/content/Sinhala-CDistNet/models/reconstruct_CDistNet_3_10',  # load test model
     script_path='utils/Evaluation_TextRecog/script.py',
