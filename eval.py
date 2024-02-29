@@ -10,12 +10,16 @@ from mmcv import Config
 import torch
 import torch.nn as nn
 import torch.distributed as dist
+import re
 
 from cdistnet.data.data import make_data_loader_test, make_lmdb_data_loader_test
 # from cdistnet.hdf5loader import make_data_loader
 from cdistnet.model.translator import Translator
 from cdistnet.utils.submit_with_lexicon import ic03_lex, iiit5k_lex, svt_lex, svt_p_lex
 from cdistnet.model.model import build_CDistNet
+from cdistnet.data.data import make_data_loader
+
+from cdistnet.engine.trainer import eval as new_eval
 
 
 def parse_args():
@@ -139,64 +143,64 @@ def start_eval_simple(submit_list,gt_list,name_list):
 #         f.writelines(err_list)
     return total / num *100.0
 
-def eval(cfg, args,model_path):
-    # init dist_train
-    if cfg.train_method=='dist':
-        dist.init_process_group(backend='nccl')
-        torch.cuda.set_device(args.local_rank)
+# def eval(cfg, args,model_path):
+#     # init dist_train
+#     if cfg.train_method=='dist':
+#         dist.init_process_group(backend='nccl')
+#         torch.cuda.set_device(args.local_rank)
 
-    model = build_CDistNet(cfg)
-    model.load_state_dict(torch.load(model_path))
-    if cfg.train_method=='dist':
-        model.cuda(args.local_rank)
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.local_rank])
-    else:
-        device = torch.device(cfg.test.device)
-        model.to(device)
-    model.eval()
+#     model = build_CDistNet(cfg)
+#     model.load_state_dict(torch.load(model_path))
+#     if cfg.train_method=='dist':
+#         model.cuda(args.local_rank)
+#         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.local_rank])
+#     else:
+#         device = torch.device(cfg.test.device)
+#         model.to(device)
+#     model.eval()
 
-    translator = Translator(cfg, model=model)
-    word2idx, idx2word = load_vocab(cfg.dst_vocab, cfg.dst_vocab_size)
-    lexdir = cfg.test.image_dir
-    result_line = []
-    for i,data_name in enumerate(cfg.test.test_list):
-        print("dataset name: {}".format(data_name))
-        if cfg.test.is_test_gt ==True:
-            test_dataloader = make_data_loader_test(cfg, lexdir[i], gt_file=data_name)
-        else:
-            test_dataloader = make_lmdb_data_loader_test(cfg, [data_name])
+#     translator = Translator(cfg, model=model)
+#     word2idx, idx2word = load_vocab(cfg.dst_vocab, cfg.dst_vocab_size)
+#     lexdir = cfg.test.image_dir
+#     result_line = []
+#     for i,data_name in enumerate(cfg.test.test_list):
+#         print("dataset name: {}".format(data_name))
+#         if cfg.test.is_test_gt ==True:
+#             test_dataloader = make_data_loader_test(cfg, lexdir[i], gt_file=data_name)
+#         else:
+#             test_dataloader = make_lmdb_data_loader_test(cfg, [data_name])
 
-        gt_list, name_list, pred_list = [], [], []
-        num = 0
+#         gt_list, name_list, pred_list = [], [], []
+#         num = 0
 
-        #start eval
-        for iteration, batch in enumerate(tqdm(test_dataloader)):
-            b_image, b_gt, b_name = batch[0], batch[1], batch[2]
-            gt_list_, name_list_, pred_list_, num = get_pred_gt_name(
-                translator, idx2word, b_image, b_gt, b_name, num, cfg.dst_vocab, cfg.test.rotate,cfg.rgb2gray,cfg.test.is_test_gt
-            )
-            gt_list += gt_list_
-            name_list += name_list_
-            pred_list += pred_list_
-        # print("gt:{} \n pred:{}".format(gt_list,pred_list))
-        gt_file = os.path.join(cfg.test.model_dir, 'gt.txt')
-        pred_file = os.path.join(cfg.test.model_dir, 'submit.txt')
-        name_file = os.path.join(cfg.test.model_dir, 'name.txt')
-        write_to_file(gt_file, gt_list)
-        write_to_file(pred_file, pred_list)
-        write_to_file(name_file, name_list)
-        res_simple = start_eval_simple(pred_list,gt_list,name_list)
-        print("res_simple_acc:{}".format(res_simple))
-        result_line += [res_simple]
-        # if cfg.test.is_test_gt == False:
-        #     res = start_eval(cfg.test.script_path, data_name, gt_file, pred_file, name_file, lexdir, cfg.test.python_path)
-        #     result_line += res
-        # print("result_line:{}".format(result_line))
-    result_line.insert(0, model_path.split('/')[-1])
-    print(os.path.join(cfg.test.model_dir, 'result.csv'))
-    with open(os.path.join(cfg.test.model_dir, 'result.csv'), 'a') as f:
-        writer = csv.writer(f)
-        writer.writerow(result_line)
+#         #start eval
+#         for iteration, batch in enumerate(tqdm(test_dataloader)):
+#             b_image, b_gt, b_name = batch[0], batch[1], batch[2]
+#             gt_list_, name_list_, pred_list_, num = get_pred_gt_name(
+#                 translator, idx2word, b_image, b_gt, b_name, num, cfg.dst_vocab, cfg.test.rotate,cfg.rgb2gray,cfg.test.is_test_gt
+#             )
+#             gt_list += gt_list_
+#             name_list += name_list_
+#             pred_list += pred_list_
+#         # print("gt:{} \n pred:{}".format(gt_list,pred_list))
+#         gt_file = os.path.join(cfg.test.model_dir, 'gt.txt')
+#         pred_file = os.path.join(cfg.test.model_dir, 'submit.txt')
+#         name_file = os.path.join(cfg.test.model_dir, 'name.txt')
+#         write_to_file(gt_file, gt_list)
+#         write_to_file(pred_file, pred_list)
+#         write_to_file(name_file, name_list)
+#         res_simple = start_eval_simple(pred_list,gt_list,name_list)
+#         print("res_simple_acc:{}".format(res_simple))
+#         result_line += [res_simple]
+#         # if cfg.test.is_test_gt == False:
+#         #     res = start_eval(cfg.test.script_path, data_name, gt_file, pred_file, name_file, lexdir, cfg.test.python_path)
+#         #     result_line += res
+#         # print("result_line:{}".format(result_line))
+#     result_line.insert(0, model_path.split('/')[-1])
+#     print(os.path.join(cfg.test.model_dir, 'result.csv'))
+#     with open(os.path.join(cfg.test.model_dir, 'result.csv'), 'a') as f:
+#         writer = csv.writer(f)
+#         writer.writerow(result_line)
 
 
 def average(model, models):
@@ -215,6 +219,10 @@ def average(model, models):
 
 
 def main():
+    def getEpochNo(file_path):
+        epoch_number = re.search(r'epoch(\d+)', file_path).group(1)
+        return int(epoch_number)
+
     args = parse_args()
     cfg = Config.fromfile(args.config)
     headers = cfg.test.test_list
@@ -224,69 +232,117 @@ def main():
             writer = csv.writer(f)
             writer.writerow(headers)
     if cfg.test.best_acc_test:
-        path2 = glob.glob(cfg.test.model_dir + '/epoch9_*.pth')
-        path = glob.glob(cfg.test.model_dir + '/*_best_acc.pth')
-        for model_path in path2:
-            print("model: {}".format(model_path))
-            # eval(cfg, args,os.path.join(cfg.test.model_dir, model_path))
-            eval(cfg, args, model_path)
-        for model_path in path:
-            print("model: {}".format(model_path))
-            # eval(cfg, args,os.path.join(cfg.test.model_dir, model_path))
-            eval(cfg, args, model_path)
-        # return
+        # path2 = glob.glob(cfg.test.model_dir + '/epoch9_*.pth')
+        # path = glob.glob(cfg.test.model_dir + '/*_best_acc.pth')
+        models = glob.glob(cfg.test.model_dir + '/epoch*_best_acc.pth')
+        latest = sorted(models, key=getEpochNo)[-1]
+        print("model: {}".format(latest))
+        eval(cfg, args, latest)
 
     # eval all
-    if cfg.test.eval_all:
-        paths = glob.glob(cfg.test.model_dir + "/*.pth")
-        for model_path in paths:
-            print("model: {}".format(model_path))
-            # eval(cfg, args,os.path.join(cfg.test.model_dir, model_path))
-            eval(cfg, args, model_path)
-            return
-    else:
-        model_path_patten = cfg.test.model_dir + '/model_epoch_{}.pth'
-        s, e = cfg.test.s_epoch, cfg.test.e_epoch
-        if e < s:
-            s, e = e, s
-        if s != -1:
-            for i in range(s, e + 1):
-                model_path = model_path_patten.format(i)
-                print("model: {}".format(model_path))
-                eval(cfg, args,model_path)
+    # if cfg.test.eval_all:
+    #     paths = glob.glob(cfg.test.model_dir + "/*.pth")
+    #     for model_path in paths:
+    #         print("model: {}".format(model_path))
+    #         # eval(cfg, args,os.path.join(cfg.test.model_dir, model_path))
+    #         eval(cfg, args, model_path)
+    #         return
+    # else:
+    #     model_path_patten = cfg.test.model_dir + '/model_epoch_{}.pth'
+    #     s, e = cfg.test.s_epoch, cfg.test.e_epoch
+    #     if e < s:
+    #         s, e = e, s
+    #     if s != -1:
+    #         for i in range(s, e + 1):
+    #             model_path = model_path_patten.format(i)
+    #             print("model: {}".format(model_path))
+    #             eval(cfg, args,model_path)
 
-        # model average
-        avg_s, avg_e = cfg.test.avg_s, cfg.test.avg_e
-        if avg_e < avg_s:
-            avg_s, avg_e = avg_e, avg_s
-        if avg_s == -1:
-            return
-        models = []
-        if cfg.test.avg_all:
-            for i in range(avg_s, avg_e + 1):
-                model_paths = glob.glob(cfg.test.model_dir + '/model_epoch_{}*.pth'.format(i))
-                for model_path in model_paths:
-                    print("model: {}".format(model_path))
-                    model = build_CDistNet(cfg)
-                    model.load_state_dict(torch.load(model_path))
-                    models.append(model)
-        else:
-            for i in range(avg_s, avg_e + 1):
-                model_path = model_path_patten.format(i)
-                print("model: {}".format(model_path))
-                model = build_CDistNet(cfg)
-                model.load_state_dict(torch.load(model_path))
-                models.append(model)
-        model = build_CDistNet(cfg)
-        # model = models[0]
-        average(model, models)
-        if cfg.test.avg_all:
-            model_path = os.path.join(cfg.test.model_dir, 'model_epoch_avg({}-{}-all).pth'.format(avg_s, avg_e))
-        else:
-            model_path = os.path.join(cfg.test.model_dir, 'model_epoch_avg({}-{}).pth'.format(avg_s, avg_e))
-        torch.save(model.state_dict(), model_path)
-        eval(cfg, args,model_path)
+    #     # model average
+    #     avg_s, avg_e = cfg.test.avg_s, cfg.test.avg_e
+    #     if avg_e < avg_s:
+    #         avg_s, avg_e = avg_e, avg_s
+    #     if avg_s == -1:
+    #         return
+    #     models = []
+    #     if cfg.test.avg_all:
+    #         for i in range(avg_s, avg_e + 1):
+    #             model_paths = glob.glob(cfg.test.model_dir + '/model_epoch_{}*.pth'.format(i))
+    #             for model_path in model_paths:
+    #                 print("model: {}".format(model_path))
+    #                 model = build_CDistNet(cfg)
+    #                 model.load_state_dict(torch.load(model_path))
+    #                 models.append(model)
+    #     else:
+    #         for i in range(avg_s, avg_e + 1):
+    #             model_path = model_path_patten.format(i)
+    #             print("model: {}".format(model_path))
+    #             model = build_CDistNet(cfg)
+    #             model.load_state_dict(torch.load(model_path))
+    #             models.append(model)
+    #     model = build_CDistNet(cfg)
+    #     # model = models[0]
+    #     average(model, models)
+    #     if cfg.test.avg_all:
+    #         model_path = os.path.join(cfg.test.model_dir, 'model_epoch_avg({}-{}-all).pth'.format(avg_s, avg_e))
+    #     else:
+    #         model_path = os.path.join(cfg.test.model_dir, 'model_epoch_avg({}-{}).pth'.format(avg_s, avg_e))
+    #     torch.save(model.state_dict(), model_path)
+    #     eval(cfg, args,model_path)
 
+def eval(cfg, args,model_path):
+    device = torch.device(cfg.train.device)
+    device = args.local_rank if cfg.train_method=='dist' else device
+    # init dist_train
+    if cfg.train_method=='dist':
+        dist.init_process_group(backend='nccl')
+        torch.cuda.set_device(args.local_rank)
+
+    model = build_CDistNet(cfg)
+    model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
+    lexdir = cfg.test.image_dir
+    for i,data_name in enumerate(cfg.test.test_list):
+        print("dataset name: {}".format(data_name))
+        if cfg.test.is_test_gt ==True:
+            test_dataloader = make_data_loader_test(cfg, lexdir[i], gt_file=data_name)
+        else:
+            test_dataloader = make_data_loader(cfg, is_train=False, val_gt_file=data_name)
+            
+        loss_per_word, acc = new_eval(model, [test_dataloader], device, cfg.train.label_smoothing,cfg)
+
+        print("loss_per_word:", loss_per_word, "acc:", acc)
+            
+    #     gt_list, name_list, pred_list = [], [], []
+    #     num = 0
+
+    #     #start eval
+    #     for iteration, batch in enumerate(tqdm(test_dataloader)):
+    #         b_image, b_gt, b_name = batch[0], batch[1], batch[2]
+    #         gt_list_, name_list_, pred_list_, num = get_pred_gt_name(
+    #             translator, idx2word, b_image, b_gt, b_name, num, cfg.dst_vocab, cfg.test.rotate,cfg.rgb2gray,cfg.test.is_test_gt
+    #         )
+    #         gt_list += gt_list_
+    #         name_list += name_list_
+    #         pred_list += pred_list_
+    #     # print("gt:{} \n pred:{}".format(gt_list,pred_list))
+    #     gt_file = os.path.join(cfg.test.model_dir, 'gt.txt')
+    #     pred_file = os.path.join(cfg.test.model_dir, 'submit.txt')
+    #     name_file = os.path.join(cfg.test.model_dir, 'name.txt')
+    #     write_to_file(gt_file, gt_list)
+    #     write_to_file(pred_file, pred_list)
+    #     write_to_file(name_file, name_list)
+    #     res_simple = start_eval_simple(pred_list,gt_list,name_list)
+    #     print("res_simple_acc:{}".format(res_simple))
+    #     result_line += [res_simple]
+    #     # if cfg.test.is_test_gt == False:
+    #     #     res = start_eval(cfg.test.script_path, data_name, gt_file, pred_file, name_file, lexdir, cfg.test.python_path)
+    #     #     result_line += res
+    #     # print("result_line:{}".format(result_line))
+    # result_line.insert(0, model_path.split('/')[-1])
+    # print(os.path.join(cfg.test.model_dir, 'result.csv'))
+    # with open(os.path.join(cfg.test.model_dir, 'result.csv'), 'a') as f:
+    #     writer = csv.writer(f)
+    #     writer.writerow(result_line)
 
 if __name__ == '__main__':
     main()
